@@ -1,6 +1,15 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, Document, Model } from "mongoose";
 
-const StudyBlockSchema = new Schema(
+export interface StudyBlockType extends Document {
+  userId: string;
+  startTime: Date;
+  endTime: Date;
+  notified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const StudyBlockSchema: Schema<StudyBlockType> = new Schema(
   {
     userId: { type: String, required: true },
     startTime: { type: Date, required: true },
@@ -10,5 +19,7 @@ const StudyBlockSchema = new Schema(
   { timestamps: true }
 );
 
-export default mongoose.models.StudyBlock ||
-  mongoose.model("StudyBlock", StudyBlockSchema);
+const StudyBlock: Model<StudyBlockType> =
+  mongoose.models.StudyBlock || mongoose.model<StudyBlockType>("StudyBlock", StudyBlockSchema);
+
+export default StudyBlock;
