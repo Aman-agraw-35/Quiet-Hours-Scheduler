@@ -11,7 +11,7 @@ interface Block {
 
 export default function BlocksPage() {
   const [blocks, setBlocks] = useState<Block[]>([]);
-  const userId = "test-user-123"; // Replace with Supabase Auth user id later
+  const userId = "test-user-123"; 
 
   async function fetchBlocks() {
     const res = await fetch(`/api/blocks?userId=${userId}`);
@@ -25,24 +25,59 @@ export default function BlocksPage() {
     fetchBlocks();
   }
 
-  useEffect(() => { fetchBlocks(); }, []);
+  useEffect(() => {
+    fetchBlocks();
+  }, []);
+
+  const sortedBlocks = blocks.sort(
+    (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+  );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <BlockForm userId={userId} onCreated={fetchBlocks} />
-      <div className="bg-white shadow rounded-lg p-4">
-        <h2 className="text-lg font-semibold mb-3">Your Study Blocks</h2>
-        {blocks.length === 0 && <p>No blocks yet.</p>}
-        <ul className="divide-y">
-          {blocks.map((block) => (
-            <li key={block._id} className="py-2 flex justify-between items-center">
-              <span>{new Date(block.startTime).toLocaleString()} → {new Date(block.endTime).toLocaleString()}</span>
-              <button onClick={() => deleteBlock(block._id)} className="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600">
-                Delete
-              </button>
-            </li>
-          ))}
-        </ul>
+
+      <div className="bg-gray-50 p-6 rounded-xl shadow-md">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Your Study Blocks</h2>
+
+        {blocks.length === 0 ? (
+          <p className="text-gray-500 text-center py-8">No blocks yet. Add your first study block above!</p>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-4">
+            {sortedBlocks.map((block) => {
+              const start = new Date(block.startTime);
+              const end = new Date(block.endTime);
+              const now = new Date();
+              const isUpcoming = start > now;
+
+              return (
+                <div
+                  key={block._id}
+                  className={`p-4 rounded-lg shadow hover:shadow-lg transition duration-300 border ${
+                    isUpcoming ? "border-blue-400 bg-blue-50" : "border-gray-200 bg-white"
+                  }`}
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-gray-700 font-semibold">
+                        {start.toLocaleString()} → {end.toLocaleString()}
+                      </p>
+                      <p className={`mt-1 text-sm font-medium ${isUpcoming ? "text-blue-600" : "text-gray-500"}`}>
+                        {isUpcoming ? "Upcoming Block" : "Past Block"}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => deleteBlock(block._id)}
+                      className="ml-4 px-3 py-1 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

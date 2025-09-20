@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 
-export default function BlockForm({ userId, onCreated }: { userId: string; onCreated: () => void }) {
+interface BlockFormProps {
+  userId: string;
+  onCreated: () => void;
+}
+
+export default function BlockForm({ userId, onCreated }: BlockFormProps) {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [loading, setLoading] = useState(false);
@@ -27,17 +32,47 @@ export default function BlockForm({ userId, onCreated }: { userId: string; onCre
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white shadow rounded-lg p-4 space-y-3">
-      <h2 className="text-lg font-semibold">Add Study Block</h2>
-      <div className="flex flex-col gap-2">
-        <label className="text-sm">Start Time</label>
-        <input type="datetime-local" className="border p-2 rounded" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+    <form
+      onSubmit={handleSubmit}
+      className="bg-gradient-to-r  text-black from-indigo-50 to-purple-50 shadow-lg rounded-xl p-6 max-w-md mx-auto space-y-5"
+    >
+      <h2 className="text-2xl font-bold text-gray-800 text-center">Add Study Block</h2>
+
+      <div className="flex flex-col gap-1  text-black">
+        <label htmlFor="startTime" className="text-sm font-medium text-gray-700">
+          Start Time
+        </label>
+        <input
+          id="startTime"
+          type="datetime-local"
+          className="border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-indigo-400 focus:outline-none transition"
+          value={startTime}
+          onChange={(e) => setStartTime(e.target.value)}
+          required
+        />
       </div>
-      <div className="flex flex-col gap-2">
-        <label className="text-sm">End Time</label>
-        <input type="datetime-local" className="border p-2 rounded" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+
+      <div className="flex flex-col gap-1 text-black">
+        <label htmlFor="endTime" className="text-sm font-medium text-gray-700">
+          End Time
+        </label>
+        <input
+          id="endTime"
+          type="datetime-local"
+          className="border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-indigo-400 focus:outline-none transition"
+          value={endTime}
+          onChange={(e) => setEndTime(e.target.value)}
+          required
+        />
       </div>
-      <button disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+
+      <button
+        type="submit"
+        disabled={loading}
+        className={`w-full py-3 rounded-xl text-white font-semibold transition ${
+          loading ? "bg-gray-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700"
+        }`}
+      >
         {loading ? "Saving..." : "Save Block"}
       </button>
     </form>
