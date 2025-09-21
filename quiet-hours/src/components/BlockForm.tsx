@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
 interface BlockFormProps {
   userId: string;
@@ -10,16 +11,27 @@ interface BlockFormProps {
 export default function BlockForm({ userId, onCreated }: BlockFormProps) {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
+  const [email, setEmail] = useState(""); // new
   const [loading, setLoading] = useState(false);
+
+  // Get user's email from Supabase Auth
+  useEffect(() => {
+    supabase.auth.getSession().then((res) => {
+      const user = res.data.session?.user;
+      if (user) setEmail(user.email || "");
+    });
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+
     const res = await fetch("/api/blocks", {
       method: "POST",
-      body: JSON.stringify({ userId, startTime, endTime }),
       headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, email, startTime, endTime }),
     });
+
     setLoading(false);
     if (res.ok) {
       setStartTime("");
@@ -34,11 +46,11 @@ export default function BlockForm({ userId, onCreated }: BlockFormProps) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-gradient-to-r  text-black from-indigo-50 to-purple-50 shadow-lg rounded-xl p-6 max-w-md mx-auto space-y-5"
+      className="bg-gradient-to-r text-black from-indigo-50 to-purple-50 shadow-lg rounded-xl p-6 max-w-md mx-auto space-y-5"
     >
       <h2 className="text-2xl font-bold text-gray-800 text-center">Add Study Block</h2>
 
-      <div className="flex flex-col gap-1  text-black">
+      <div className="flex flex-col gap-1 text-black">
         <label htmlFor="startTime" className="text-sm font-medium text-gray-700">
           Start Time
         </label>

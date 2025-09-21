@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import BlockForm from "@/components/BlockForm";
+import { supabase } from "@/lib/supabaseClient";
 
 interface Block {
   _id: string;
@@ -11,12 +12,22 @@ interface Block {
 
 export default function BlocksPage() {
   const [blocks, setBlocks] = useState<Block[]>([]);
-  const userId = "test-user-123"; 
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Get logged-in user from Supabase Auth
+  useEffect(() => {
+    supabase.auth.getSession().then((res) => {
+      const user = res.data.session?.user;
+      if (user) setUserId(user.id);
+    });
+  }, []);
 
   async function fetchBlocks() {
+    if (!userId) return;
     const res = await fetch(`/api/blocks?userId=${userId}`);
     if (res.ok) {
-      setBlocks(await res.json());
+      const data = await res.json();
+      setBlocks(data);
     }
   }
 
@@ -25,23 +36,21 @@ export default function BlocksPage() {
     fetchBlocks();
   }
 
-  useEffect(() => {
-    fetchBlocks();
-  }, []);
-
   const sortedBlocks = blocks.sort(
     (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
   );
 
   return (
-    <div className="space-y-8">
-      <BlockForm userId={userId} onCreated={fetchBlocks} />
+    <div className="space-y-8 max-w-5xl mx-auto mt-10">
+      {userId && <BlockForm userId={userId} onCreated={fetchBlocks} />}
 
       <div className="bg-gray-50 p-6 rounded-xl shadow-md">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Your Study Blocks</h2>
 
         {blocks.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">No blocks yet. Add your first study block above!</p>
+          <p className="text-gray-500 text-center py-8">
+            No blocks yet. Add your first study block above!
+          </p>
         ) : (
           <div className="grid md:grid-cols-2 gap-4">
             {sortedBlocks.map((block) => {
@@ -62,7 +71,11 @@ export default function BlocksPage() {
                       <p className="text-gray-700 font-semibold">
                         {start.toLocaleString()} → {end.toLocaleString()}
                       </p>
-                      <p className={`mt-1 text-sm font-medium ${isUpcoming ? "text-blue-600" : "text-gray-500"}`}>
+                      <p
+                        className={`mt-1 text-sm font-medium ${
+                          isUpcoming ? "text-blue-600" : "text-gray-500"
+                        }`}
+                      >
                         {isUpcoming ? "Upcoming Block" : "Past Block"}
                       </p>
                     </div>

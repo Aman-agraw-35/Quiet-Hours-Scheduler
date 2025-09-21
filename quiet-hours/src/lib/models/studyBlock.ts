@@ -2,6 +2,7 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface StudyBlockType extends Document {
   userId: string;
+  email: string;         
   startTime: Date;
   endTime: Date;
   notified: boolean;
@@ -12,6 +13,7 @@ export interface StudyBlockType extends Document {
 const StudyBlockSchema: Schema<StudyBlockType> = new Schema(
   {
     userId: { type: String, required: true },
+    email: { type: String, required: true }, 
     startTime: { type: Date, required: true },
     endTime: { type: Date, required: true },
     notified: { type: Boolean, default: false },

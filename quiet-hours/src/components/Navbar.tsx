@@ -10,7 +10,7 @@ export function Navbar() {
         <div className="space-x-4">
           <Link href="/blocks" className="text-gray-700 hover:text-blue-600">Dashboard</Link>
           <Link href="/login" className="text-gray-700 hover:text-blue-600">Login</Link>
-          <Link href="/register" className="px-3 py-1 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700">Signup</Link>
+          <Link href="/signup" className="px-3 py-1 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700">Signup</Link>
         </div>
       </div>
     </nav>

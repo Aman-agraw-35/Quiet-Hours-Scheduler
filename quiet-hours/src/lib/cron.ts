@@ -20,12 +20,14 @@ const transporter: Transporter = nodemailer.createTransport({
 });
 
 async function sendEmail({ to, subject, text }: EmailOptions): Promise<void> {
-  await transporter.sendMail({
+  const info = await transporter.sendMail({
     from: process.env.SMTP_USER,
     to,
     subject,
     text,
   });
+
+  console.log(`Email queued: ${info.messageId} -> ${to}`);
 }
 
 export async function startCron(): Promise<void> {
@@ -33,7 +35,9 @@ export async function startCron(): Promise<void> {
 
   cron.schedule("* * * * *", async () => {
     const now = new Date();
-    const targetTime = new Date(now.getTime() + 10 * 60 * 1000); 
+    const targetTime = new Date(now.getTime() + 10 * 60 * 1000);
+
+    console.log("🔍 Cron check at", now.toLocaleString());
 
     try {
       const blocks: StudyBlockType[] = await StudyBlock.find({
@@ -43,7 +47,7 @@ export async function startCron(): Promise<void> {
 
       for (const block of blocks) {
         try {
-          const userEmail: string = `${block.userId}@example.com`;
+          const userEmail: string = block.email;
 
           await sendEmail({
             to: userEmail,
@@ -54,15 +58,15 @@ export async function startCron(): Promise<void> {
           block.notified = true;
           await block.save();
 
-          console.log(`Email sent to ${userEmail} for block starting at ${block.startTime}`);
-        } catch (err) {
-          console.error("Failed to send email for block:", block._id, err);
+          console.log(`📧 Email sent to ${userEmail} for block ${block._id}`);
+        } catch (err: any) {
+          console.error("❌ Failed to send email for block:", block._id, err.message);
         }
       }
-    } catch (err) {
-      console.error("Cron job failed:", err);
+    } catch (err: any) {
+      console.error("❌ Cron job failed:", err.message);
     }
   });
 
-  console.log("Cron job started: checking blocks every minute...");
+  console.log("✅ Cron job started: checking blocks every minute...");
 }
