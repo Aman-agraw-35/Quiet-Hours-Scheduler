@@ -14,7 +14,6 @@ export default function BlocksPage() {
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
 
-  // Get logged-in user from Supabase Auth
   useEffect(() => {
     supabase.auth.getSession().then((res) => {
       const user = res.data.session?.user;
@@ -22,14 +21,22 @@ export default function BlocksPage() {
     });
   }, []);
 
-  async function fetchBlocks() {
-    if (!userId) return;
-    const res = await fetch(`/api/blocks?userId=${userId}`);
-    if (res.ok) {
-      const data = await res.json();
-      setBlocks(data);
-    }
+async function fetchBlocks() {
+  const session = await supabase.auth.getSession();
+  const token = session.data.session?.access_token;
+  if (!token) return;
+
+  const res = await fetch(`/api/blocks`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (res.ok) {
+    const data = await res.json();
+    setBlocks(data);
   }
+}
+
 
   async function deleteBlock(id: string) {
     await fetch(`/api/blocks/${id}`, { method: "DELETE" });
