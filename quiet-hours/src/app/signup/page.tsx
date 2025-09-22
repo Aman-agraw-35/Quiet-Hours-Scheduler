@@ -40,7 +40,7 @@ export default function SignupPage() {
   return (
     <form
       onSubmit={handleSignup}
-      className="max-w-md mx-auto mt-10 p-6 bg-white shadow rounded space-y-4"
+      className="max-w-md mx-auto mt-10 p-6 bg-white text-black shadow rounded space-y-4"
     >
       <h1 className="text-xl font-bold">Sign Up</h1>
       <input

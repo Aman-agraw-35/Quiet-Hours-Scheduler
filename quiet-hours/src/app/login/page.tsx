@@ -20,7 +20,7 @@ export default function LoginPage() {
   }
 
   return (
-    <form onSubmit={handleLogin} className="max-w-md mx-auto mt-10 p-6 bg-white shadow rounded space-y-4">
+    <form onSubmit={handleLogin} className="max-w-md mx-auto mt-10 p-6 text-black bg-white shadow rounded space-y-4">
       <h1 className="text-xl font-bold">Login</h1>
       <input
         type="email"
