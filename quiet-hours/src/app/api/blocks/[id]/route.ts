@@ -1,15 +1,23 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import StudyBlock from "@/lib/models/StudyBlock";
-import { supabase } from "@/lib/supabaseClient";
+import { createServerClient } from "@supabase/auth-helpers-nextjs";
+import { cookies } from "next/headers";
 
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {
   try {
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session) {
+    const cookieStore = cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { cookies: { get: (name) => cookieStore.get(name)?.value } }
+    );
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const userId = session.user.id;
+    const userId = user.id;
 
     await connectDB();
 

@@ -17,26 +17,22 @@ export default function BlocksPage() {
   useEffect(() => {
     supabase.auth.getSession().then((res) => {
       const user = res.data.session?.user;
-      if (user) setUserId(user.id);
+      if (user) {
+        setUserId(user.id);
+        fetchBlocks();
+      } else {
+        setUserId(null);
+      }
     });
   }, []);
 
-async function fetchBlocks() {
-  const session = await supabase.auth.getSession();
-  const token = session.data.session?.access_token;
-  if (!token) return;
-
-  const res = await fetch(`/api/blocks`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  if (res.ok) {
-    const data = await res.json();
-    setBlocks(data);
+  async function fetchBlocks() {
+    const res = await fetch(`/api/blocks`);
+    if (res.ok) {
+      const data = await res.json();
+      setBlocks(data);
+    }
   }
-}
-
 
   async function deleteBlock(id: string) {
     await fetch(`/api/blocks/${id}`, { method: "DELETE" });
@@ -49,7 +45,7 @@ async function fetchBlocks() {
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto mt-10">
-      {userId && <BlockForm userId={userId} onCreated={fetchBlocks} />}
+      {userId && <BlockForm onCreated={fetchBlocks} />}
 
       <div className="bg-gray-50 p-6 rounded-xl shadow-md">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Your Study Blocks</h2>

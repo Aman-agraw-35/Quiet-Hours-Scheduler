@@ -1,26 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
 interface BlockFormProps {
-  userId: string;
   onCreated: () => void;
 }
 
-export default function BlockForm({ userId, onCreated }: BlockFormProps) {
+export default function BlockForm({ onCreated }: BlockFormProps) {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-  const [email, setEmail] = useState(""); // new
   const [loading, setLoading] = useState(false);
-
-  // Get user's email from Supabase Auth
-  useEffect(() => {
-    supabase.auth.getSession().then((res) => {
-      const user = res.data.session?.user;
-      if (user) setEmail(user.email || "");
-    });
-  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,8 +18,10 @@ export default function BlockForm({ userId, onCreated }: BlockFormProps) {
 
     const res = await fetch("/api/blocks", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, email, startTime, endTime }),
+      headers: { 
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ startTime, endTime }),
     });
 
     setLoading(false);
