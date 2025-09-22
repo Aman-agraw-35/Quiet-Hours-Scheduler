@@ -13,39 +13,92 @@ interface Block {
 export default function BlocksPage() {
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then((res) => {
-      const user = res.data.session?.user;
-      if (user) {
-        setUserId(user.id);
-        fetchBlocks();
+      const session = res.data.session;
+      if (session?.user) {
+        setUserId(session.user.id);
+        setAccessToken(session.access_token);
+        fetchBlocks(session.access_token);
       } else {
         setUserId(null);
+        setAccessToken(null);
       }
     });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUserId(session.user.id);
+        setAccessToken(session.access_token);
+        fetchBlocks(session.access_token);
+      } else {
+        setUserId(null);
+        setAccessToken(null);
+        setBlocks([]);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  async function fetchBlocks() {
-    const res = await fetch(`/api/blocks`);
-    if (res.ok) {
-      const data = await res.json();
-      setBlocks(data);
+  async function fetchBlocks(token?: string) {
+    const authToken = token || accessToken;
+    if (!authToken) return;
+
+    try {
+      const res = await fetch(`/api/blocks`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setBlocks(data);
+      } else {
+        console.error('Failed to fetch blocks:', await res.text());
+      }
+    } catch (error) {
+      console.error('Error fetching blocks:', error);
     }
   }
 
   async function deleteBlock(id: string) {
-    await fetch(`/api/blocks/${id}`, { method: "DELETE" });
-    fetchBlocks();
+    if (!accessToken) return;
+    
+    try {
+      const res = await fetch(`/api/blocks/${id}`, { 
+        method: "DELETE",
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+      if (res.ok) {
+        fetchBlocks();
+      } else {
+        console.error('Failed to delete block:', await res.text());
+      }
+    } catch (error) {
+      console.error('Error deleting block:', error);
+    }
   }
 
   const sortedBlocks = blocks.sort(
     (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
   );
 
+  if (!userId) {
+    return (
+      <div className="text-center py-8">
+        <p>Please log in to view your study blocks.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 max-w-5xl mx-auto mt-10">
-      {userId && <BlockForm onCreated={fetchBlocks} />}
+      <BlockForm onCreated={() => fetchBlocks()} accessToken={accessToken} />
 
       <div className="bg-gray-50 p-6 rounded-xl shadow-md">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Your Study Blocks</h2>

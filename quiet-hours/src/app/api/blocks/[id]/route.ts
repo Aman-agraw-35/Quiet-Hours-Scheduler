@@ -1,17 +1,14 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import StudyBlock from "@/lib/models/StudyBlock";
-import { createServerClient } from "@supabase/auth-helpers-nextjs";
+import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const cookieStore = cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { cookies: { get: (name) => cookieStore.get(name)?.value } }
-    );
+    const { id } = await context.params;
+    const cookieStore = await cookies();
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
@@ -21,7 +18,7 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
 
     await connectDB();
 
-    const block = await StudyBlock.findById(params.id);
+    const block = await StudyBlock.findById(id);
     if (!block) {
       return NextResponse.json({ error: "Block not found" }, { status: 404 });
     }
@@ -30,7 +27,7 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    await StudyBlock.findByIdAndDelete(params.id);
+    await StudyBlock.findByIdAndDelete(id);
     return NextResponse.json({ message: "Deleted successfully" });
   } catch (error: any) {
     console.error("DELETE /api/blocks/:id error:", error);

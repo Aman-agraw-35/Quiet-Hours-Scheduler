@@ -1,13 +1,13 @@
+import { NextResponse } from "next/server";
 import { startCron } from "@/lib/cron";
 
-export default async function handler(req: any, res: any) {
+export async function GET() {
   try {
-      console.log("Test cron run");
-      
+    console.log("Test cron run");
     await startCron();
-    res.status(200).json({ message: "Cron started" });
-  } catch (err) {
+    return NextResponse.json({ message: "Cron started" });
+  } catch (err: any) {
     console.error(err);
-    res.status(500).json({ error: "Failed to start cron" });
+    return NextResponse.json({ error: "Failed to start cron" }, { status: 500 });
   }
 }

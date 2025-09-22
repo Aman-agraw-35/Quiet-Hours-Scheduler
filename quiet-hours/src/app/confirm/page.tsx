@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
-export default function ConfirmPage() {
+function ConfirmContent() {
   const [status, setStatus] = useState("Verifying...");
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -27,7 +27,7 @@ export default function ConfirmPage() {
         setStatus("Failed to verify: " + error.message);
       } else {
         setStatus("Email confirmed! Redirecting to dashboard...");
-        setTimeout(() => router.push("/dashboard"), 2000);
+        setTimeout(() => router.push("/blocks"), 2000);
       }
     }
 
@@ -41,5 +41,13 @@ export default function ConfirmPage() {
         <p className="mt-2">{status}</p>
       </div>
     </div>
+  );
+}
+
+export default function ConfirmPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ConfirmContent />
+    </Suspense>
   );
 }

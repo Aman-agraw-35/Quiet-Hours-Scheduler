@@ -1,37 +1,49 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
 
 interface BlockFormProps {
   onCreated: () => void;
+  accessToken: string | null;
 }
 
-export default function BlockForm({ onCreated }: BlockFormProps) {
+export default function BlockForm({ onCreated, accessToken }: BlockFormProps) {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!accessToken) {
+      alert("Not authenticated");
+      return;
+    }
+
     setLoading(true);
 
-    const res = await fetch("/api/blocks", {
-      method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ startTime, endTime }),
-    });
+    try {
+      const res = await fetch("/api/blocks", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ startTime, endTime }),
+      });
 
-    setLoading(false);
-    if (res.ok) {
-      setStartTime("");
-      setEndTime("");
-      onCreated();
-    } else {
-      const err = await res.json();
-      alert(err.error || "Something went wrong");
+      if (res.ok) {
+        setStartTime("");
+        setEndTime("");
+        onCreated();
+      } else {
+        const err = await res.json();
+        alert(err.error || "Something went wrong");
+      }
+    } catch (error) {
+      console.error("Error creating block:", error);
+      alert("Network error occurred");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -72,9 +84,9 @@ export default function BlockForm({ onCreated }: BlockFormProps) {
 
       <button
         type="submit"
-        disabled={loading}
+        disabled={loading || !accessToken}
         className={`w-full py-3 rounded-xl text-white font-semibold transition ${
-          loading ? "bg-gray-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700"
+          loading || !accessToken ? "bg-gray-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700"
         }`}
       >
         {loading ? "Saving..." : "Save Block"}

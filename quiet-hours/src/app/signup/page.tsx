@@ -14,14 +14,13 @@ export default function SignupPage() {
     e.preventDefault();
     setLoading(true);
 
- const { data, error } = await supabase.auth.signUp({
-  email,
-  password,
-  options: {
-    emailRedirectTo: "http://localhost:3000/confirm",
-  },
-});
-
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/confirm`,
+      },
+    });
 
     setLoading(false);
 
